@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Plus, Video, Trash2, LogOut, Edit, ArrowLeft } from 'lucide-react';
-import type { Course, Lesson } from '../types';
+import type { Course, Lesson, User } from '../types';
 
 interface TeacherDashboardProps {
     courses: Course[];
     setCourses: React.Dispatch<React.SetStateAction<Course[]>>;
     onLogout: () => void;
+    user: User;
 }
 
-export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ courses, setCourses, onLogout }) => {
+export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ courses, setCourses, onLogout, user }) => {
     const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
 
     // New Course State
@@ -89,12 +90,20 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ courses, set
                                 <span className="text-xs font-bold text-brand-green tracking-wider">INSTRUCTOR</span>
                             </div>
                         </div>
-                        <button
-                            onClick={onLogout}
-                            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
-                        >
-                            <LogOut size={18} /> Sign Out
-                        </button>
+
+                        <div className="flex items-center gap-6">
+                            <div className="hidden md:flex flex-col items-end">
+                                <span className="text-sm font-bold text-slate-900">{user.name}</span>
+                                <span className="text-xs text-slate-500">{user.email}</span>
+                            </div>
+                            <div className="h-8 w-px bg-slate-200 hidden md:block" />
+                            <button
+                                onClick={onLogout}
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                            >
+                                <LogOut size={18} /> <span className="hidden sm:inline">Sign Out</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </nav>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { User, Lock, Mail, ShieldAlert } from 'lucide-react';
+import { User, Lock, Mail, ShieldAlert, Loader2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import { AuthLayout } from './AuthLayout';
 import type { Role } from '../types';
 
@@ -11,22 +12,54 @@ interface RegisterScreenProps {
 export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSwitchToLogin }) => {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
     const [role, setRole] = useState<Role>('student');
     const [secretCode, setSecretCode] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const TEACHER_SECRET_CODE = 'CED-2025';
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        console.log('Submitting registration form...', { name, email, role });
         setError('');
+        setLoading(true);
 
         if (role === 'teacher' && secretCode !== TEACHER_SECRET_CODE) {
+            console.error('Invalid secret code');
             setError('Invalid Faculty Access Code. Please contact the administrator.');
+            setLoading(false);
             return;
         }
 
-        onRegister(name, email, role);
+        try {
+            console.log('Calling supabase.auth.signUp...');
+            const { data, error } = await supabase.auth.signUp({
+                email,
+                password,
+                options: {
+                    data: {
+                        name,
+                        role,
+                    },
+                },
+            });
+
+            console.log('Supabase response:', { data, error });
+
+            if (error) throw error;
+
+            if (data.user) {
+                console.log('Registration successful, calling onRegister...');
+                onRegister(name, email, role);
+            }
+        } catch (err: any) {
+            console.error('Registration error:', err);
+            setError(err.message || 'Failed to create account');
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -77,6 +110,24 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
                 </div>
 
                 <div>
+                    <label className="block text-sm font-medium text-slate-700">Password</label>
+                    <div className="mt-1 relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Lock className="h-5 w-5 text-slate-400" />
+                        </div>
+                        <input
+                            type="password"
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
+                            placeholder="••••••••"
+                            minLength={6}
+                        />
+                    </div>
+                </div>
+
+                <div>
                     <label className="block text-sm font-medium text-slate-700 mb-2">
                         I want to join as a...
                     </label>
@@ -85,8 +136,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
                             type="button"
                             onClick={() => setRole('student')}
                             className={`flex items-center justify-center px-4 py-3 border rounded-lg text-sm font-medium transition-all ${role === 'student'
-                                    ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
-                                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                                ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
+                                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                                 }`}
                         >
                             Student
@@ -95,8 +146,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
                             type="button"
                             onClick={() => setRole('teacher')}
                             className={`flex items-center justify-center px-4 py-3 border rounded-lg text-sm font-medium transition-all ${role === 'teacher'
-                                    ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
-                                    : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                                ? 'border-blue-600 bg-blue-50 text-blue-700 ring-1 ring-blue-600'
+                                : 'border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                                 }`}
                         >
                             Teacher
@@ -130,9 +181,14 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onRegister, onSw
 
                 <button
                     type="submit"
-                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+                    disabled={loading}
+                    className="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                    Create Account
+                    {loading ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                        'Create Account'
+                    )}
                 </button>
 
                 <div className="text-center mt-4">

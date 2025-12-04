@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { PlayCircle, CheckCircle, Circle, LogOut, ChevronLeft, Play, BookOpen, ChevronRight } from 'lucide-react';
-import type { Course, Lesson, StudentProgress } from '../types';
+import type { Course, Lesson, StudentProgress, User } from '../types';
 
 interface StudentDashboardProps {
     courses: Course[];
     onLogout: () => void;
+    user: User;
 }
 
-export const StudentDashboard: React.FC<StudentDashboardProps> = ({ courses, onLogout }) => {
+export const StudentDashboard: React.FC<StudentDashboardProps> = ({ courses, onLogout, user }) => {
     const [activeCourse, setActiveCourse] = useState<Course | null>(null);
     const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
     const [progress, setProgress] = useState<StudentProgress>({});
@@ -79,8 +80,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ courses, onL
                             <button
                                 onClick={() => toggleComplete(activeCourse.id, activeLesson.id)}
                                 className={`flex items-center gap-2 px-6 py-3 rounded-full font-semibold transition-all transform active:scale-95 ${isCompleted
-                                        ? 'bg-brand-green text-white shadow-lg shadow-brand-green/30'
-                                        : 'bg-white text-slate-900 hover:bg-slate-200'
+                                    ? 'bg-brand-green text-white shadow-lg shadow-brand-green/30'
+                                    : 'bg-white text-slate-900 hover:bg-slate-200'
                                     }`}
                             >
                                 {isCompleted ? <CheckCircle size={20} /> : <Circle size={20} />}
@@ -109,8 +110,8 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ courses, onL
                                             key={lesson.id}
                                             onClick={() => setActiveLesson(lesson)}
                                             className={`w-full flex items-center gap-3 p-3 rounded-xl text-left transition-all ${isActive
-                                                    ? 'bg-brand-orange text-white shadow-lg shadow-brand-orange/20'
-                                                    : 'hover:bg-white/5 text-slate-300 hover:text-white'
+                                                ? 'bg-brand-orange text-white shadow-lg shadow-brand-orange/20'
+                                                : 'hover:bg-white/5 text-slate-300 hover:text-white'
                                                 }`}
                                         >
                                             <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${isActive ? 'bg-white/20' : 'bg-white/10'
@@ -243,12 +244,20 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ courses, onL
                         <span className="text-xs font-bold text-brand-green tracking-wider">E-LEARNING</span>
                     </div>
                 </div>
-                <button
-                    onClick={onLogout}
-                    className="text-slate-500 hover:text-red-600 transition-colors flex items-center gap-2 text-sm font-medium"
-                >
-                    <LogOut size={18} /> Sign Out
-                </button>
+
+                <div className="flex items-center gap-6">
+                    <div className="hidden md:flex flex-col items-end">
+                        <span className="text-sm font-bold text-slate-900">{user.name}</span>
+                        <span className="text-xs text-slate-500">{user.email}</span>
+                    </div>
+                    <div className="h-8 w-px bg-slate-200 hidden md:block" />
+                    <button
+                        onClick={onLogout}
+                        className="text-slate-500 hover:text-red-600 transition-colors flex items-center gap-2 text-sm font-medium"
+                    >
+                        <LogOut size={18} /> <span className="hidden sm:inline">Sign Out</span>
+                    </button>
+                </div>
             </nav>
 
             {/* Hero Section */}
@@ -264,7 +273,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({ courses, onL
                 <div className="max-w-7xl mx-auto px-6 py-16 relative z-10">
                     <div className="max-w-2xl">
                         <h1 className="text-4xl lg:text-5xl font-extrabold tracking-tight mb-6 leading-tight text-white">
-                            Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-yellow-400">Student</span>
+                            Welcome back, <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-orange to-yellow-400">{user.name}</span>
                         </h1>
                         <p className="text-lg text-slate-200 mb-8 leading-relaxed">
                             Continue your journey in Computer Education. Explore our courses designed to enhance your skills.

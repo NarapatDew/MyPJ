@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from './lib/supabase';
 import { LoginScreen } from './components/LoginScreen';
 import { RegisterScreen } from './components/RegisterScreen';
 import { TeacherDashboard } from './components/TeacherDashboard';
@@ -14,7 +15,7 @@ function App() {
       id: '1',
       title: 'Frontend Development Mastery',
       description: 'Become a professional frontend developer by mastering React, Tailwind CSS, and modern web practices.',
-      thumbnail: 'https://images.unsplash.com/photo-1593720213428-28a5b9e94613?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      thumbnail: '/assets/course-frontend.png',
       instructorId: 'teacher-1',
       lessons: [
         {
@@ -35,7 +36,7 @@ function App() {
       id: '2',
       title: 'UI/UX Design Fundamentals',
       description: 'Learn how to design beautiful user interfaces and create engaging user experiences.',
-      thumbnail: 'https://images.unsplash.com/photo-1586717791821-3f44a5638d48?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80',
+      thumbnail: '/assets/course-uiux.png',
       instructorId: 'teacher-1',
       lessons: [
         {
@@ -48,27 +49,56 @@ function App() {
     }
   ]);
 
-  const handleLogin = (email: string, role: Role) => {
-    setCurrentUser({
-      id: Date.now().toString(),
-      name: email.split('@')[0],
-      email,
-      role,
+  useEffect(() => {
+    // Check active session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        const role = session.user.user_metadata?.role as Role || 'student';
+        const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User';
+
+        setCurrentUser({
+          id: session.user.id,
+          name,
+          email: session.user.email || '',
+          role,
+        });
+      }
     });
+
+    // Listen for changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        const role = session.user.user_metadata?.role as Role || 'student';
+        const name = session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'User';
+
+        setCurrentUser({
+          id: session.user.id,
+          name,
+          email: session.user.email || '',
+          role,
+        });
+      } else {
+        setCurrentUser(null);
+        setAuthMode('login');
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogin = (_email: string, _role: Role) => {
+    // This is now handled by the auth state listener, but we keep the prop for the LoginScreen
+    // In a real refactor we might remove this prop entirely, but for now it's fine.
   };
 
-  const handleRegister = (name: string, email: string, role: Role) => {
-    setCurrentUser({
-      id: Date.now().toString(),
-      name,
-      email,
-      role,
-    });
+  const handleRegister = (_name: string, _email: string, _role: Role) => {
+    // Also handled by auth listener
   };
 
-  const handleLogout = () => {
-    setCurrentUser(null);
-    setAuthMode('login');
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
   };
 
   if (!currentUser) {
@@ -95,6 +125,7 @@ function App() {
         courses={courses}
         setCourses={setCourses}
         onLogout={handleLogout}
+        user={currentUser}
       />
     );
   }
@@ -103,6 +134,7 @@ function App() {
     <StudentDashboard
       courses={courses}
       onLogout={handleLogout}
+      user={currentUser}
     />
   );
 }
