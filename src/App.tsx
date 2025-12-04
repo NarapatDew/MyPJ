@@ -93,12 +93,21 @@ function App() {
     // In a real refactor we might remove this prop entirely, but for now it's fine.
   };
 
-  const handleRegister = (_name: string, _email: string, _role: Role) => {
-    // Also handled by auth listener
-  };
+
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Error signing out:', error);
+      }
+    } catch (error) {
+      console.error('Unexpected error during sign out:', error);
+    } finally {
+      // Always clear local state, even if the server request fails (e.g. 403)
+      setCurrentUser(null);
+      setAuthMode('login');
+    }
   };
 
   if (!currentUser) {
@@ -112,7 +121,6 @@ function App() {
     } else {
       return (
         <RegisterScreen
-          onRegister={handleRegister}
           onSwitchToLogin={() => setAuthMode('login')}
         />
       );

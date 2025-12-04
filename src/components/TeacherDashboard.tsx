@@ -10,6 +10,7 @@ interface TeacherDashboardProps {
 }
 
 export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ courses, setCourses, onLogout, user }) => {
+    const [viewMode, setViewMode] = useState<'list' | 'create' | 'edit'>('list');
     const [editingCourseId, setEditingCourseId] = useState<string | null>(null);
 
     // New Course State
@@ -36,6 +37,7 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ courses, set
         setNewCourseTitle('');
         setNewCourseDesc('');
         setNewCourseThumb('');
+        setViewMode('list');
     };
 
     const handleDeleteCourse = (id: string) => {
@@ -109,11 +111,14 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ courses, set
             </nav>
 
             <main className="max-w-7xl mx-auto p-6 lg:p-8">
-                {editingCourseId && activeCourse ? (
+                {viewMode === 'edit' && activeCourse ? (
                     // COURSE EDITOR VIEW
                     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-300">
                         <button
-                            onClick={() => setEditingCourseId(null)}
+                            onClick={() => {
+                                setViewMode('list');
+                                setEditingCourseId(null);
+                            }}
                             className="flex items-center gap-2 text-slate-500 hover:text-brand-orange transition-colors font-medium"
                         >
                             <ArrowLeft size={20} /> Back to Courses
@@ -209,97 +214,128 @@ export const TeacherDashboard: React.FC<TeacherDashboardProps> = ({ courses, set
                             </div>
                         </div>
                     </div>
-                ) : (
-                    // COURSE LIST VIEW
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                        <div className="lg:col-span-4">
-                            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sticky top-24">
-                                <h2 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                    <Plus className="w-5 h-5 text-brand-green" /> Create New Course
-                                </h2>
-                                <form onSubmit={handleCreateCourse} className="space-y-4">
-                                    <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-1">Course Title</label>
-                                        <input
-                                            required
-                                            value={newCourseTitle}
-                                            onChange={(e) => setNewCourseTitle(e.target.value)}
-                                            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-green outline-none"
-                                            placeholder="e.g., Web Development Bootcamp"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-1">Description</label>
-                                        <textarea
-                                            required
-                                            value={newCourseDesc}
-                                            onChange={(e) => setNewCourseDesc(e.target.value)}
-                                            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-green outline-none resize-none"
-                                            rows={3}
-                                            placeholder="Course overview..."
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold text-slate-700 mb-1">Cover Image URL</label>
-                                        <input
-                                            type="url"
-                                            value={newCourseThumb}
-                                            onChange={(e) => setNewCourseThumb(e.target.value)}
-                                            className="w-full px-4 py-2 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-green outline-none"
-                                            placeholder="https://..."
-                                        />
-                                    </div>
-                                    <button type="submit" className="w-full bg-brand-green text-white py-3 rounded-xl hover:bg-green-700 font-medium transition-colors shadow-lg shadow-brand-green/20">
-                                        Create Course
-                                    </button>
-                                </form>
-                            </div>
-                        </div>
 
-                        <div className="lg:col-span-8 space-y-6">
-                            <h2 className="text-xl font-bold text-slate-900">Your Courses ({courses.length})</h2>
-                            {courses.length === 0 ? (
-                                <div className="text-center py-16 bg-white rounded-2xl border-2 border-dashed border-slate-200">
-                                    <p className="text-slate-500">You haven't created any courses yet.</p>
+                ) : viewMode === 'create' ? (
+                    // CREATE COURSE VIEW
+                    <div className="max-w-2xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-300">
+                        <button
+                            onClick={() => setViewMode('list')}
+                            className="flex items-center gap-2 text-slate-500 hover:text-brand-orange transition-colors font-medium mb-6"
+                        >
+                            <ArrowLeft size={20} /> Back to Courses
+                        </button>
+
+                        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8">
+                            <h2 className="text-2xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+                                <Plus className="w-6 h-6 text-brand-green" /> Create New Course
+                            </h2>
+                            <form onSubmit={handleCreateCourse} className="space-y-6">
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Course Title</label>
+                                    <input
+                                        required
+                                        value={newCourseTitle}
+                                        onChange={(e) => setNewCourseTitle(e.target.value)}
+                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-green outline-none transition-all"
+                                        placeholder="e.g., Web Development Bootcamp"
+                                    />
                                 </div>
-                            ) : (
-                                <div className="grid gap-6">
-                                    {courses.map((course) => (
-                                        <div key={course.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col sm:flex-row hover:shadow-md transition-shadow">
-                                            <div className="sm:w-48 h-48 sm:h-auto relative">
-                                                <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover" />
-                                            </div>
-                                            <div className="p-6 flex-1 flex flex-col">
-                                                <div className="flex-1">
-                                                    <h3 className="text-xl font-bold text-slate-900 mb-2">{course.title}</h3>
-                                                    <p className="text-slate-500 line-clamp-2 mb-4">{course.description}</p>
-                                                    <div className="flex items-center gap-4 text-sm text-slate-500">
-                                                        <span className="flex items-center gap-1"><Video size={16} /> {course.lessons.length} Lessons</span>
-                                                    </div>
-                                                </div>
-                                                <div className="mt-6 flex items-center gap-3">
-                                                    <button
-                                                        onClick={() => setEditingCourseId(course.id)}
-                                                        className="flex-1 bg-slate-900 text-white px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 font-medium"
-                                                    >
-                                                        <Edit size={16} /> Manage Content
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleDeleteCourse(course.id)}
-                                                        className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                                                    >
-                                                        <Trash2 size={20} />
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Description</label>
+                                    <textarea
+                                        required
+                                        value={newCourseDesc}
+                                        onChange={(e) => setNewCourseDesc(e.target.value)}
+                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-green outline-none resize-none transition-all"
+                                        rows={4}
+                                        placeholder="Course overview..."
+                                    />
                                 </div>
-                            )}
+                                <div>
+                                    <label className="block text-sm font-semibold text-slate-700 mb-2">Cover Image URL</label>
+                                    <input
+                                        type="url"
+                                        value={newCourseThumb}
+                                        onChange={(e) => setNewCourseThumb(e.target.value)}
+                                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-green outline-none transition-all"
+                                        placeholder="https://..."
+                                    />
+                                </div>
+                                <button type="submit" className="w-full bg-brand-green text-white py-3.5 rounded-xl hover:bg-green-700 font-bold text-lg transition-all shadow-lg shadow-brand-green/20 hover:shadow-brand-green/30 transform hover:-translate-y-0.5">
+                                    Create Course
+                                </button>
+                            </form>
                         </div>
                     </div>
+                ) : (
+                    // COURSE LIST VIEW
+                    <div className="space-y-8 animate-in fade-in duration-300">
+                        <div className="flex justify-between items-center">
+                            <h2 className="text-2xl font-bold text-slate-900">Your Courses ({courses.length})</h2>
+                            <button
+                                onClick={() => setViewMode('create')}
+                                className="flex items-center gap-2 bg-brand-green text-white px-6 py-3 rounded-xl hover:bg-green-700 font-medium transition-all shadow-lg shadow-brand-green/20 hover:shadow-brand-green/30 transform hover:-translate-y-0.5"
+                            >
+                                <Plus size={20} /> Create New Course
+                            </button>
+                        </div>
+
+                        {courses.length === 0 ? (
+                            <div className="text-center py-24 bg-white rounded-2xl border-2 border-dashed border-slate-200">
+                                <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
+                                    <Plus size={32} />
+                                </div>
+                                <h3 className="text-lg font-bold text-slate-900 mb-2">No courses yet</h3>
+                                <p className="text-slate-500 mb-6">Create your first course to get started teaching.</p>
+                                <button
+                                    onClick={() => setViewMode('create')}
+                                    className="text-brand-green font-bold hover:underline"
+                                >
+                                    Create a Course Now
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {courses.map((course) => (
+                                    <div key={course.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col hover:shadow-md transition-all group">
+                                        <div className="h-48 relative overflow-hidden">
+                                            <img src={course.thumbnail} alt={course.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                        </div>
+                                        <div className="p-6 flex-1 flex flex-col">
+                                            <div className="flex-1">
+                                                <h3 className="text-xl font-bold text-slate-900 mb-2 line-clamp-1">{course.title}</h3>
+                                                <p className="text-slate-500 line-clamp-2 mb-4 text-sm">{course.description}</p>
+                                                <div className="flex items-center gap-4 text-xs font-medium text-slate-500 bg-slate-50 py-2 px-3 rounded-lg w-fit">
+                                                    <span className="flex items-center gap-1.5"><Video size={14} /> {course.lessons.length} Lessons</span>
+                                                </div>
+                                            </div>
+                                            <div className="mt-6 flex items-center gap-3">
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingCourseId(course.id);
+                                                        setViewMode('edit');
+                                                    }}
+                                                    className="flex-1 bg-slate-900 text-white px-4 py-2.5 rounded-xl hover:bg-slate-800 transition-colors flex items-center justify-center gap-2 font-medium text-sm"
+                                                >
+                                                    <Edit size={16} /> Manage
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteCourse(course.id)}
+                                                    className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                                                >
+                                                    <Trash2 size={18} />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 )}
-            </main>
-        </div>
+
+            </main >
+        </div >
     );
 };
