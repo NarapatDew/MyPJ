@@ -38,10 +38,10 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSwitchToReg
                 // Pass session directly to avoid race conditions
                 const userRole = data.user.user_metadata?.role as Role || 'student';
                 try {
-                    // Add timeout to prevent infinite loading
+                    // Add timeout to prevent infinite loading (5 seconds should be enough)
                     const loginPromise = onLogin(email, userRole, data.session);
                     const timeoutPromise = new Promise((_, reject) => 
-                        setTimeout(() => reject(new Error('Login timeout. Please try again.')), 10000)
+                        setTimeout(() => reject(new Error('Login timeout. Please try again.')), 5000)
                     );
                     
                     await Promise.race([loginPromise, timeoutPromise]);

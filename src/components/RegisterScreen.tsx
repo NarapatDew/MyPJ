@@ -53,6 +53,8 @@ export const RegisterScreen: React.FC<RegisterScreenProps> = ({ onSwitchToLogin 
 
             if (data.user) {
                 console.log('Registration successful');
+                // Store email in localStorage to track pending confirmation
+                localStorage.setItem('pending_email_confirmation', email);
                 setShowSuccess(true);
                 // We don't call onRegister immediately here because we want to show the verification screen first.
                 // If auto-login happens (email verification off), App.tsx will handle the redirect anyway.

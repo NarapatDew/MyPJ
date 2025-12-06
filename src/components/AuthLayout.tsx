@@ -20,6 +20,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
                             src="/assets/dept-logo.png"
                             alt="Department Logo"
                             className="h-12 w-auto object-contain"
+                            loading="lazy"
                         />
                         <div className="flex flex-col">
                             <span className="text-xl font-bold text-slate-900 leading-none tracking-tight">CED</span>
@@ -48,6 +49,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
                     className="absolute inset-0 h-full w-full object-cover"
                     src="/assets/auth-hero.png"
                     alt="Faculty Atmosphere"
+                    loading="lazy"
                 />
 
                 <div className="absolute inset-0 z-20 flex flex-col justify-end p-16 text-white">
@@ -57,7 +59,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children, title, subtitl
                             "Education is the passport to the future, for tomorrow belongs to those who prepare for it today."
                         </p>
                         <footer className="flex items-center gap-4 pt-4 border-t border-white/20">
-                            <img src="/assets/faculty-logo.png" alt="Faculty Logo" className="h-16 w-auto drop-shadow-lg" />
+                            <img src="/assets/faculty-logo.png" alt="Faculty Logo" className="h-16 w-auto drop-shadow-lg" loading="lazy" />
                             <div className="text-sm font-medium opacity-90">
                                 <div className="font-bold text-lg">Faculty of Technical Education</div>
                                 <div className="text-brand-orange font-semibold">King Mongkut's University of Technology North Bangkok</div>

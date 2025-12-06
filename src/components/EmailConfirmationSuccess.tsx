@@ -70,3 +70,4 @@ export const EmailConfirmationSuccess: React.FC<EmailConfirmationSuccessProps> =
     );
 };
 
+
