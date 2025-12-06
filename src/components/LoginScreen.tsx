@@ -5,7 +5,7 @@ import { AuthLayout } from './AuthLayout';
 import type { Role } from '../types';
 
 interface LoginScreenProps {
-    onLogin: (email: string, role: Role) => void;
+    onLogin: (email: string, role: Role, session?: any) => Promise<void> | void;
     onSwitchToRegister: () => void;
 }
 
@@ -34,16 +34,32 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSwitchToReg
 
             if (error) throw error;
 
-            if (data.user) {
-                // In a real app, we would fetch the role from a 'profiles' table.
-                // For now, we'll default to 'student' or check metadata if we set it there.
-                // Let's assume we stored it in user_metadata for simplicity in this first pass.
+            if (data.session) {
+                // Pass session directly to avoid race conditions
                 const userRole = data.user.user_metadata?.role as Role || 'student';
-                onLogin(email, userRole);
+                try {
+                    // Add timeout to prevent infinite loading
+                    const loginPromise = onLogin(email, userRole, data.session);
+                    const timeoutPromise = new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('Login timeout. Please try again.')), 10000)
+                    );
+                    
+                    await Promise.race([loginPromise, timeoutPromise]);
+                    // If onLogin succeeds, the App component will update and unmount this component
+                    // So we don't need to reset loading state here
+                } catch (loginError: any) {
+                    // If onLogin fails, reset loading and show error
+                    console.error('Error in onLogin callback:', loginError);
+                    setError(loginError.message || 'Failed to complete login. Please try again.');
+                    setLoading(false);
+                }
+            } else {
+                // Edge case: User exists but no session (shouldn't happen on standard login)
+                throw new Error('No session created. Please check your email verification.');
             }
         } catch (err: any) {
+            console.error('Login error:', err);
             setError(err.message || 'Failed to sign in');
-        } finally {
             setLoading(false);
         }
     };
@@ -77,7 +93,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin, onSwitchToReg
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg placeholder-slate-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-colors"
-                            placeholder="you@example.com"
+                            placeholder="email"
                         />
                     </div>
                 </div>
